@@ -1,0 +1,4 @@
+static/images/menu/*.jpg
+static/images/*.jpg
+__pycache__/
+*.pyc
