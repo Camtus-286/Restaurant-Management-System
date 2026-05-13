@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Menu — Borcelle{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+  <div>
+    <h2 style="font-family:var(--font-head);font-size:36px;font-weight:400;letter-spacing:2px;">Menu</h2>
+    <p style="margin-top:2px;">Manage dishes, prices and availability.</p>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn btn-primary" onclick="openModal('addDishModal')">+ Add Dish</button>
+  </div>
+</div>
+<div class="page-content">
+
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:20px;">
+    <div class="stat-card">
+      <div class="label">Total Dishes</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ total }}</div>
+      <div class="desc">In the menu</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Available</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ available }}</div>
+      <div class="desc">Currently serving</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Categories</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ categories|length }}</div>
+      <div class="desc">Dish categories</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg. Price</div>
+      <div style="font-family:var(--font-body);font-size:24px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(avg_price) }}</div>
+      <div class="desc">VND per dish</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+    <input type="text" name="q" value="{{ q }}"
+      placeholder="Search by dish name..."
+      style="max-width:260px;border-radius:20px;padding:8px 16px;font-size:13px;">
+    <select name="category" style="width:auto;border-radius:20px;padding:8px 36px 8px 14px;font-size:13px;appearance:none;-webkit-appearance:none;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%236b6b6b%22 d=%22M6 8L1 3h10z%22/></svg>') no-repeat right 14px center;background-color:#fff;">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {{ 'selected' if selected_category == cat }}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" style="width:auto;border-radius:20px;padding:8px 36px 8px 14px;font-size:13px;appearance:none;-webkit-appearance:none;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%236b6b6b%22 d=%22M6 8L1 3h10z%22/></svg>') no-repeat right 14px center;background-color:#fff;">
+      <option value="">All Status</option>
+      <option value="available" {{ 'selected' if selected_status == 'available' }}>Available</option>
+      <option value="unavailable" {{ 'selected' if selected_status == 'unavailable' }}>Unavailable</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a href="{{ url_for('menu.index') }}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+
+  <!-- Dish Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;">
+    {% for item in items %}
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+
+      <!-- Image -->
+      <div style="height:150px;overflow:hidden;background:#f0ebe3;position:relative;">
+        <img src="{{ url_for('static', filename='images/menu/' + item.ImageFilename) }}"
+             alt="{{ item.DishName }}"
+             style="width:100%;height:100%;object-fit:cover;"
+             onerror="this.parentElement.innerHTML='<div style=\'height:150px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;\'>No image</div>'">
+        <div style="position:absolute;top:8px;right:8px;">
+          {% if item.Available %}
+            <span class="badge badge-green">Available</span>
+          {% else %}
+            <span class="badge badge-red">Unavailable</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div style="padding:14px;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;">{{ item.Category }}</div>
+        <div style="font-family:var(--font-head);font-size:17px;font-weight:400;margin-bottom:8px;">{{ item.DishName }}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:14px;font-weight:400;color:var(--text);">{{ "{:,.0f}".format(item.Price) }} <span style="font-size:11px;color:var(--text-light);">VND</span></div>
+          <button class="btn btn-outline btn-sm"
+            onclick="openEditModal({{ item.DishID }}, '{{ item.DishName|e }}', {{ item.Price }}, '{{ item.Category }}', {{ 'true' if item.Available else 'false' }}, '{{ item.ImageFilename }}')"
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="grid-column:1/-1;text-align:center;color:var(--text-light);padding:40px;">No dishes found.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Edit Dish</div>
+    <form method="POST" id="editForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Dish Name</label>
+        <input type="text" name="name" id="editName" required>
+      </div>
+      <div class="form-group">
+        <label>Price (VND)</label>
+        <input type="number" name="price" id="editPrice" required min="0">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category" id="editCat">
+          <option>Entree</option>
+          <option>Main</option>
+          <option>Pizza</option>
+          <option>Starter</option>
+          <option>Dessert</option>
+          <option>Beverage</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Dish Image</label>
+        <div id="editImgPreview" style="width:100%;height:120px;border-radius:6px;overflow:hidden;margin-bottom:8px;background:#f0ebe3;">
+          <img id="editImgPreviewImg" src="" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <input type="file" name="image" id="editImageInput" accept="image/*"
+          style="font-size:12px;" onchange="previewImage(this)">
+        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">Leave empty to keep current image.</p>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" name="available" id="editAvailable" style="width:auto;">
+        <label style="text-transform:none;font-size:13px;margin:0;">Available</label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openEditModal(id, name, price, category, available, imgFilename) {
+  document.getElementById('editName').value       = name;
+  document.getElementById('editPrice').value      = price;
+  document.getElementById('editCat').value        = category;
+  document.getElementById('editAvailable').checked = available;
+  document.getElementById('editImageInput').value  = '';
+  document.getElementById('editImgPreviewImg').src = '/static/images/menu/' + imgFilename;
+  document.getElementById('editForm').action       = '/menu/edit/' + id;
+  openModal('editModal');
+}
+
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('editImgPreviewImg').src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+<!-- Add Dish Modal -->
+<div class="modal-overlay" id="addDishModal">
+  <div class="modal">
+    <div class="modal-title">Add New Dish</div>
+    <form method="POST" action="{{ url_for('menu.add') }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Dish Name</label>
+        <input type="text" name="name" required placeholder="Enter dish name">
+      </div>
+      <div class="form-group">
+        <label>Price (VND)</label>
+        <input type="number" name="price" required min="0" placeholder="e.g. 185000">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category">
+          <option>Starter</option>
+          <option>Entree</option>
+          <option>Main</option>
+          <option>Pizza</option>
+          <option>Dessert</option>
+          <option>Beverage</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Dish Image</label>
+        <input type="file" name="image" accept="image/*" style="font-size:12px;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addDishModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Dish</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

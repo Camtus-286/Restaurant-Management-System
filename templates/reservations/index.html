@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Reservations — Borcelle{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+  <div>
+    <h2 style="font-family:var(--font-head);font-size:36px;font-weight:400;letter-spacing:2px;">Reservations</h2>
+    <p style="margin-top:2px;">Manage table bookings and schedules.</p>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn btn-primary" onclick="openModal('addModal')">+ New Reservation</button>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="label">Total</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ confirmed_count + cancelled_count }}</div>
+      <div class="desc">All reservations</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Confirmed</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:#3d7a5a;line-height:1.1;margin:8px 0;">{{ confirmed_count }}</div>
+      <div class="desc">Active bookings</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Cancelled</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:#c0392b;line-height:1.1;margin:8px 0;">{{ cancelled_count }}</div>
+      <div class="desc">Cancelled bookings</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <form method="GET" style="display:flex;gap:8px;align-items:center;margin-bottom:20px;">
+    <input type="text" name="q" value="{{ q }}"
+      placeholder="Search by customer name..."
+      style="max-width:280px;border-radius:20px;padding:8px 16px;font-size:13px;">
+    <select name="status" style="width:auto;border-radius:20px;padding:8px 14px;font-size:13px;">
+      <option value="">All Status</option>
+      <option value="confirmed" {{ 'selected' if selected_status == 'confirmed' }}>Confirmed</option>
+      <option value="cancelled" {{ 'selected' if selected_status == 'cancelled' }}>Cancelled</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a href="{{ url_for('reservations.index') }}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+
+  <!-- Table -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap" style="max-height:calc(100vh - 320px);overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Table</th>
+            <th>Date & Time</th>
+            <th>Guests</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservations %}
+          <tr>
+            <td style="color:var(--text-light);">#{{ r.ReservationID }}</td>
+            <td style="font-weight:400;">{{ r.customer.CustomerName }}</td>
+            <td>Table {{ r.table.TableNumber }}</td>
+            <td>{{ r.DateTime.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>{{ r.GuestCount }}</td>
+            <td>
+              {% if r.Status == 'confirmed' %}
+                <span class="badge badge-green">Confirmed</span>
+              {% else %}
+                <span class="badge badge-red">Cancelled</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.Status == 'confirmed' %}
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-primary btn-sm"
+                  onclick="openInvoiceModal({{ r.ReservationID }}, {{ r.customer.CustomerID }}, '{{ r.customer.CustomerName|e }}', {{ r.table.TableID }}, {{ r.table.TableNumber }})">
+                  Invoice
+                </button>
+                <form method="POST" action="{{ url_for('reservations.cancel', id=r.ReservationID) }}"
+                  onsubmit="return confirm('Cancel this reservation?')" style="margin:0;">
+                  <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                </form>
+              </div>
+              {% else %}
+                <span style="color:var(--text-light);font-size:12px;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;color:var(--text-light);padding:32px;">No reservations found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Reservation Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">New Reservation</div>
+    <form method="POST" action="{{ url_for('reservations.add') }}">
+      <div class="form-group">
+        <label>Customer</label>
+        <select name="customer_id" required>
+          <option value="">— Select customer —</option>
+          {% for c in customers %}
+          <option value="{{ c.CustomerID }}">{{ c.CustomerName }} — {{ c.PhoneNumber }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Available Table</label>
+        <select name="table_id" required>
+          <option value="">— Select table —</option>
+          {% for t in available_tables %}
+          <option value="{{ t.TableID }}">Table {{ t.TableNumber }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date & Time</label>
+        <input type="datetime-local" name="datetime" required>
+      </div>
+      <div class="form-group">
+        <label>Number of Guests</label>
+        <input type="number" name="guest_count" required min="1" max="20" placeholder="e.g. 4">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quick Invoice Modal (from reservation) -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal" style="width:540px;">
+    <div class="modal-title">Create Invoice</div>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;">
+      Customer: <strong id="inv_customer_name"></strong> — Table: <strong id="inv_table_num"></strong>
+    </p>
+    <form method="POST" action="{{ url_for('invoices.add') }}" id="invoiceForm">
+      <input type="hidden" name="customer_id" id="inv_customer_id">
+      <input type="hidden" name="table_id" id="inv_table_id">
+      <input type="hidden" name="reservation_id" id="inv_reservation_id">
+
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select name="payment_method">
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Dishes Ordered</label>
+        <div id="dishList">
+          <div class="dish-row" style="display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:8px;">
+            <select name="dish_id[]">
+              {% for m in menu_items %}
+              <option value="{{ m.DishID }}">{{ m.DishName }} — {{ "{:,.0f}".format(m.Price) }} VND</option>
+              {% endfor %}
+            </select>
+            <input type="number" name="quantity[]" value="1" min="1" style="text-align:center;">
+            <button type="button" onclick="removeDish(this)" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <button type="button" onclick="addDish()" class="btn btn-outline btn-sm" style="margin-top:4px;">+ Add dish</button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('invoiceModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const menuItems = [
+  {% for m in menu_items %}
+  { id: {{ m.DishID }}, name: "{{ m.DishName|e }}", price: {{ m.Price }} },
+  {% endfor %}
+];
+
+function openInvoiceModal(resId, custId, custName, tableId, tableNum) {
+  document.getElementById('inv_customer_id').value   = custId;
+  document.getElementById('inv_table_id').value      = tableId;
+  document.getElementById('inv_reservation_id').value = resId;
+  document.getElementById('inv_customer_name').textContent = custName;
+  document.getElementById('inv_table_num').textContent     = 'Table ' + tableNum;
+  openModal('invoiceModal');
+}
+
+function buildDishRow() {
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:8px;';
+  const sel = document.createElement('select');
+  sel.name = 'dish_id[]';
+  menuItems.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.name + ' — ' + m.price.toLocaleString('vi-VN') + ' VND';
+    sel.appendChild(o);
+  });
+  const qty = document.createElement('input');
+  qty.type = 'number'; qty.name = 'quantity[]';
+  qty.value = 1; qty.min = 1;
+  qty.style.textAlign = 'center';
+  const rm = document.createElement('button');
+  rm.type = 'button';
+  rm.innerHTML = '✕';
+  rm.style.cssText = 'background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;';
+  rm.onclick = function(){ removeDish(this); };
+  row.appendChild(sel); row.appendChild(qty); row.appendChild(rm);
+  return row;
+}
+
+function addDish() {
+  document.getElementById('dishList').appendChild(buildDishRow());
+}
+
+function removeDish(btn) {
+  const list = document.getElementById('dishList');
+  if (list.querySelectorAll('.dish-row').length > 1) {
+    btn.closest('.dish-row').remove();
+  }
+}
+</script>
+{% endblock %}

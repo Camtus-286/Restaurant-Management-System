@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Tables — Borcelle{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+  <div>
+    <h2 style="font-family:var(--font-head);font-size:36px;font-weight:400;letter-spacing:2px;">Tables</h2>
+    <p style="margin-top:2px;">Monitor table status and availability.</p>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn btn-primary" onclick="openModal('addTableModal')">+ Add Table</button>
+  </div>
+</div>
+<div class="page-content">
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="label">Total Tables</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ total }}</div>
+      <div class="desc">In the restaurant</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Available</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:#3d7a5a;line-height:1.1;margin:8px 0;">{{ available }}</div>
+      <div class="desc">Ready to serve</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Reserved</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:#c0392b;line-height:1.1;margin:8px 0;">{{ reserved }}</div>
+      <div class="desc">Currently occupied</div>
+    </div>
+  </div>
+
+  <!-- Table Grid -->
+  <div class="card">
+    <div class="card-title">Table Overview</div>
+    <div class="card-sub">Click Reserve / Release to toggle table status.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:16px;">
+      {% for t in tables %}
+      <div style="border:1.5px solid {{ '#a5d6a7' if t.Status=='available' else '#ffcc80' }};
+                  border-radius:8px;padding:16px 10px;text-align:center;background:#fff;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-light);margin-bottom:4px;">Table</div>
+        <div style="font-family:var(--font-head);font-size:26px;font-weight:400;color:var(--text);margin-bottom:8px;">{{ t.TableNumber }}</div>
+        <div style="margin-bottom:10px;">
+          {% if t.Status == 'available' %}
+            <span class="badge badge-green">Available</span>
+          {% else %}
+            <span class="badge badge-amber">Reserved</span>
+          {% endif %}
+        </div>
+        <form method="POST" action="{{ url_for('tables.toggle', id=t.TableID) }}" style="margin:0;">
+          <button type="submit" style="width:100%;padding:5px 8px;border-radius:4px;font-size:10px;
+            letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid;
+            transition:all 0.2s;font-family:var(--font-body);
+            {{ 'background:#fff3e0;color:#e65100;border-color:#ffcc80;' if t.Status=='available' else 'background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;' }}">
+            {{ 'Reserve' if t.Status == 'available' else 'Release' }}
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+<!-- Add Table Modal -->
+<div class="modal-overlay" id="addTableModal">
+  <div class="modal">
+    <div class="modal-title">Add New Table</div>
+    <form method="POST" action="{{ url_for('tables.add') }}">
+      <div class="form-group">
+        <label>Table Number</label>
+        <input type="number" name="number" placeholder="Enter table number" required min="1">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addTableModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Table</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

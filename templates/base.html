@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Borcelle Restaurant{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f5f2ec;
+      --sidebar:   #2c3e35;
+      --sidebar-hover: #3d5247;
+      --accent:    #b8935a;
+      --accent2:   #e8d5b0;
+      --text:      #2a2a2a;
+      --text-light:#6b6b6b;
+      --border:    #ddd5c5;
+      --white:     #ffffff;
+      --green:     #3d7a5a;
+      --red:       #c0392b;
+      --card-bg:   #fffdf8;
+      --font-head: 'Cormorant Garamond', serif;
+      --font-body: 'Jost', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      font-size: 14px;
+      font-weight: 300;
+    }
+
+    /* ── SIDEBAR ── */
+   /* ── SIDEBAR ── */
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px;
+  width: 130px; height: 130px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg opacity='0.2' fill='%23b8935a'%3E%3Ccircle cx='100' cy='60' r='28'/%3E%3Ccircle cx='140' cy='100' r='28'/%3E%3Ccircle cx='100' cy='140' r='28'/%3E%3Ccircle cx='60' cy='100' r='28'/%3E%3Ccircle cx='127' cy='73' r='28'/%3E%3Ccircle cx='127' cy='127' r='28'/%3E%3Ccircle cx='73' cy='127' r='28'/%3E%3Ccircle cx='73' cy='73' r='28'/%3E%3Ccircle cx='100' cy='100' r='22' fill='%232c3e35'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+.sidebar::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 130px; height: 130px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg opacity='0.2' fill='%23b8935a'%3E%3Ccircle cx='100' cy='60' r='28'/%3E%3Ccircle cx='140' cy='100' r='28'/%3E%3Ccircle cx='100' cy='140' r='28'/%3E%3Ccircle cx='60' cy='100' r='28'/%3E%3Ccircle cx='127' cy='73' r='28'/%3E%3Ccircle cx='127' cy='127' r='28'/%3E%3Ccircle cx='73' cy='127' r='28'/%3E%3Ccircle cx='73' cy='73' r='28'/%3E%3Ccircle cx='100' cy='100' r='22' fill='%232c3e35'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+.sidebar-logo, .sidebar-nav, .sidebar-footer { position: relative; z-index: 1; }
+
+    .sidebar-logo {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    .sidebar-logo .asterisk {
+      color: var(--accent);
+      font-size: 18px;
+      letter-spacing: 6px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .sidebar-logo h1 {
+      font-family: var(--font-head);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .sidebar-logo small {
+      color: var(--accent2);
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 300;
+    }
+
+    .sidebar-nav { padding: 16px 0; flex: 1; }
+
+    .nav-section {
+      padding: 8px 20px 4px;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      font-weight: 500;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+    }
+    .sidebar a:hover {
+      background: var(--sidebar-hover);
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+    .sidebar a.active {
+      background: var(--sidebar-hover);
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+    .sidebar a svg { opacity: 0.7; flex-shrink: 0; }
+    .sidebar a.active svg, .sidebar a:hover svg { opacity: 1; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-footer .staff-name {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .sidebar-footer .staff-name svg { opacity: 0.6; }
+    .logout-btn {
+      display: block;
+      text-align: center;
+      padding: 7px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7) !important;
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-left: none !important;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.15) !important;
+      border-left: none !important;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .page-header {
+      padding: 28px 36px 0;
+    }
+    .page-header h2 {
+      font-family: var(--font-head);
+      font-size: 32px;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+    .page-header p {
+      color: var(--text-light);
+      font-size: 13px;
+      margin-top: 2px;
+      font-weight: 300;
+    }
+
+    .page-content {
+      padding: 24px 36px 40px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .card-title {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+      font-weight: 300;
+    }
+
+    /* ── STAT CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+    }
+    .stat-card .label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .stat-card .value {
+      font-family: var(--font-head);
+      font-size: 30px;
+      font-weight: 400;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-card .desc {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 6px;
+      font-weight: 300;
+    }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #ede8df;
+      font-size: 13px;
+      font-weight: 300;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #faf8f3; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+    .badge-green  { background: #e8f5ee; color: #2d6a4f; }
+    .badge-red    { background: #fdecea; color: #c0392b; }
+    .badge-amber  { background: #fef3e2; color: #b07d2a; }
+    .badge-gray   { background: #f0ede8; color: #6b6b6b; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--sidebar); color: #fff; }
+    .btn-primary:hover { background: var(--sidebar-hover); }
+    .btn-accent  { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: #a07840; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger  { background: #fdecea; color: var(--red); border: 1px solid #f5c6c2; }
+    .btn-danger:hover { background: #f8d7d5; }
+    .btn-sm { padding: 5px 12px; font-size: 11px; }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text);
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-success { background: #e8f5ee; color: #2d6a4f; border-left: 3px solid #3d7a5a; }
+    .alert-danger  { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+    .alert-warning { background: #fef3e2; color: #b07d2a; border-left: 3px solid #e6a817; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 32px;
+      width: 460px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title {
+      font-family: var(--font-head);
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+      width: auto;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    /* ── GRID ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+    /* ── DECORATIVE ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* flash auto-dismiss */
+    .alert { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="asterisk">✦</span>
+    <h1>Borcelle</h1>
+    <small>Restaurant</small>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+
+    <div class="nav-section">Management</div>
+    <a href="{{ url_for('customers.index') }}" class="{{ 'active' if request.blueprint == 'customers' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Customers
+    </a>
+    <a href="{{ url_for('menu.index') }}" class="{{ 'active' if request.blueprint == 'menu' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+      Menu
+    </a>
+    <a href="{{ url_for('tables.index') }}" class="{{ 'active' if request.blueprint == 'tables' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="3" rx="1"/><path d="M6 10v7M18 10v7M4 17h16"/></svg>
+      Tables
+    </a>
+
+    <div class="nav-section">Operations</div>
+    <a href="{{ url_for('reservations.index') }}" class="{{ 'active' if request.blueprint == 'reservations' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Reservations
+    </a>
+    <a href="{{ url_for('invoices.index') }}" class="{{ 'active' if request.blueprint == 'invoices' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      Invoices
+    </a>
+
+    <div class="nav-section">Analytics</div>
+    <a href="{{ url_for('reports.index') }}" class="{{ 'active' if request.blueprint == 'reports' }}">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="staff-name">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Admin
+    </div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">Log out</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- Flash messages -->
+  <div style="padding: 0 36px; margin-top: 16px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  // Auto-dismiss alerts after 3s
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => {
+      el.style.transition = 'opacity 0.4s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+    });
+  }, 3000);
+
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

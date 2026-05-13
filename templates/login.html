@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Borcelle Restaurant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sidebar: #2c3e35;
+      --accent:  #b8935a;
+      --accent2: #e8d5b0;
+      --border:  #ddd5c5;
+      --bg:      #f5f2ec;
+      --text:    #2a2a2a;
+      --text-light: #6b6b6b;
+      --font-head: 'Cormorant Garamond', serif;
+      --font-body: 'Jost', sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 300;
+    }
+
+    .login-wrap {
+      display: flex;
+      width: 820px;
+      max-width: 98vw;
+      min-height: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* left panel */
+    .login-left {
+      background: var(--sidebar);
+      width: 320px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-left::before {
+      content: '';
+      position: absolute;
+      bottom: -80px; right: -80px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      border: 40px solid rgba(184,147,90,0.12);
+    }
+    .login-left::after {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 30px solid rgba(184,147,90,0.08);
+    }
+    .login-left .asterisk {
+      color: var(--accent);
+      font-size: 22px;
+      letter-spacing: 8px;
+      display: block;
+      margin-bottom: 8px;
+      position: relative; z-index: 1;
+    }
+    .login-left h1 {
+      font-family: var(--font-head);
+      color: #fff;
+      font-size: 38px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4); 
+      font-weight: 400;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.2;
+      position: relative; z-index: 1;
+    }
+    .login-left small {
+      color: var(--accent2);
+      font-size: 12px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      display: block;
+      margin-top: 4px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .login-left .tagline {
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.35);  /* thêm shadow */
+      font-size: 17px;
+      text-align: center;
+      margin-top: 24px;
+      line-height: 1.7;
+      position: relative; z-index: 1;
+      font-style: italic;
+      font-family: var(--font-head);
+      font-size: 15px;
+    }
+
+    /* right panel */
+    .login-right {
+      background: #fffdf8;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 44px;
+    }
+    .login-right h2 {
+      font-family: var(--font-head);
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+    .login-right .sub {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      font-weight: 500;
+      margin-bottom: 7px;
+    }
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--sidebar);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: #3d5247; }
+
+    .error-msg {
+      background: #fdecea;
+      color: #c0392b;
+      border-left: 3px solid #c0392b;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+<div class="login-left" style="background: linear-gradient(rgba(44,62,53,0.30), rgba(44,62,53,0.30)), url('/static/images/bakery.jpg') center/cover no-repeat;">    <span class="asterisk">✦ ✦ ✦</span>
+    <h1>Borcelle</h1>
+    <small>Restaurant</small>
+    <p class="tagline">Staff Management<br>System</p>
+  </div>
+  <div class="login-right">
+    <h2>Staff Login</h2>
+    <p class="sub">Use your staff credentials to access the system.</p>
+
+    {% if error %}
+      <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('staff_login') }}">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter username" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password" required/>
+      </div>
+      <button type="submit" class="btn-login">Sign In</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

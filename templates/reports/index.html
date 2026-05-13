@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Reports — Borcelle{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+  <div>
+    <h2 style="font-family:var(--font-head);font-size:36px;font-weight:400;letter-spacing:2px;">Reports</h2>
+    <p style="margin-top:2px;">Revenue analytics and performance overview.</p>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:8px;">
+    <a href="?days=7"  class="btn {{ 'btn-primary' if days==7  else 'btn-outline' }} btn-sm">7 days</a>
+    <a href="?days=30" class="btn {{ 'btn-primary' if days==30 else 'btn-outline' }} btn-sm">30 days</a>
+    <a href="?days=90" class="btn {{ 'btn-primary' if days==90 else 'btn-outline' }} btn-sm">90 days</a>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <!-- Stats -->
+ <!-- Stats -->
+<div class="stats-grid" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="label">Total Revenue</div>
+    <div style="font-family:var(--font-body);font-size:26px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(total_revenue) }}</div>
+    <div class="desc">VND in {{ days }} days</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Total Invoices</div>
+    <div style="font-family:var(--font-body);font-size:26px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ total_invoices }}</div>
+    <div class="desc">Paid invoices</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Avg. per Invoice</div>
+    <div style="font-family:var(--font-body);font-size:26px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(avg_invoice) }}</div>
+    <div class="desc">VND average</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Cash</div>
+    <div style="font-family:var(--font-body);font-size:26px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(cash_total) }}</div>
+    <div class="desc">VND via cash</div>
+  </div>
+</div>
+
+<!-- Stats row 2 -->
+<div style="display:grid;grid-template-columns:1fr 3fr;gap:16px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="label">Card</div>
+    <div style="font-family:var(--font-body);font-size:26px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(card_total) }}</div>
+    <div class="desc">VND via card</div>
+  </div>
+</div>
+  <!-- Charts row -->
+  <div class="grid-2" style="gap:20px;margin-bottom:20px;">
+
+    <!-- Revenue chart -->
+    <div class="card">
+      <div class="card-title">Revenue by Day</div>
+      <div class="card-sub">Daily revenue from paid invoices in last {{ days }} days.</div>
+      <canvas id="revenueChart" height="100"></canvas> 
+    </div>
+
+    <!-- Reservation status -->
+    <div class="card">
+      <div class="card-title">Reservation Status</div>
+      <div class="card-sub">Overview of all bookings.</div>
+      <canvas id="statusChart" height="100" style="max-width:220px;margin:0 auto;display:block;"></canvas>
+      <div style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;">Confirmed</span>
+          <span class="badge badge-green">{{ confirmed_count }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;">
+          <span style="font-size:13px;">Cancelled</span>
+          <span class="badge badge-red">{{ cancelled_count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top dishes -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:20px 24px 12px;">
+      <div class="card-title">Top Dishes by Revenue</div>
+      <div class="card-sub">Best performing dishes based on paid invoices in last {{ days }} days.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Dish Name</th>
+            <th>Category</th>
+            <th>Total Sold</th>
+            <th>Revenue (VND)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dish in top_dishes %}
+          {% set rank = loop.index %}
+          <tr>
+            <td>
+              {% if rank == 1 %}🥇
+              {% elif rank == 2 %}🥈
+              {% elif rank == 3 %}🥉
+              {% else %}{{ rank }}{% endif %}
+            </td>
+            <td style="font-weight:400;">{{ dish.DishName }}</td>
+            <td><span class="badge badge-gray">{{ dish.Category }}</span></td>
+            <td>{{ dish.total_sold }}</td>
+            <td style="color:var(--accent);font-weight:400;">{{ "{:,.0f}".format(dish.revenue) }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" style="text-align:center;color:var(--text-light);padding:32px;">No data available</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('revenueChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: {{ chart_labels | tojson }},
+    datasets: [{
+      data: {{ chart_data | tojson }},
+      borderColor: '#b8935a',
+      backgroundColor: 'rgba(184,147,90,0.08)',
+      borderWidth: 2,
+      pointBackgroundColor: '#b8935a',
+      pointRadius: 4,
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          font: { family: 'Jost', size: 11 },
+          callback: v => new Intl.NumberFormat('vi-VN').format(v)
+        },
+        grid: { color: 'rgba(0,0,0,0.04)' }
+      },
+      x: { ticks: { font: { family: 'Jost', size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+
+new Chart(document.getElementById('statusChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Confirmed', 'Cancelled'],
+    datasets: [{
+      data: [{{ confirmed_count }}, {{ cancelled_count }}],
+      backgroundColor: ['#3d7a5a', '#fdecea'],
+      borderColor: ['#3d7a5a', '#c0392b'],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { family: 'Jost', size: 11 } } }
+    }
+  }
+});
+</script>
+{% endblock %}

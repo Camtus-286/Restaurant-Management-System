@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Invoices — Borcelle{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+  <div>
+    <h2 style="font-family:var(--font-head);font-size:36px;font-weight:400;letter-spacing:2px;">Invoices</h2>
+    <p style="margin-top:2px;">Track revenue and payment records.</p>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn btn-primary" onclick="openModal('addModal')">+ New Invoice</button>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="label">Total Invoices</div>
+      <div style="font-family:var(--font-body);font-size:32px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ total_invoices }}</div>
+      <div class="desc">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Revenue</div>
+      <div style="font-family:var(--font-body);font-size:22px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(total_revenue) }}</div>
+      <div class="desc">VND collected</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Cash</div>
+      <div style="font-family:var(--font-body);font-size:22px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(cash_total) }}</div>
+      <div class="desc">VND via cash</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Card</div>
+      <div style="font-family:var(--font-body);font-size:22px;font-weight:400;color:var(--accent);line-height:1.1;margin:8px 0;">{{ "{:,.0f}".format(card_total) }}</div>
+      <div class="desc">VND via card</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+    <input type="text" name="q" value="{{ q }}"
+      placeholder="Search by customer or phone..."
+      style="max-width:260px;border-radius:20px;padding:8px 16px;font-size:13px;">
+    <select name="method" style="width:auto;border-radius:20px;padding:8px 14px;font-size:13px;">
+      <option value="">All Methods</option>
+      <option value="cash" {{ 'selected' if selected_method=='cash' }}>Cash</option>
+      <option value="card" {{ 'selected' if selected_method=='card' }}>Card</option>
+    </select>
+    <input type="date" name="date_from" value="{{ date_from }}" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <input type="date" name="date_to" value="{{ date_to }}" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a href="{{ url_for('invoices.index') }}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+
+  <!-- Table -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap" style="max-height:calc(100vh - 340px);overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Customer</th>
+            <th>Table</th>
+            <th>Payment Date</th>
+            <th>Method</th>
+            <th>Total Dishes</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+          <tr>
+            <td style="color:var(--text-light);">#{{ inv.InvoiceID }}</td>
+            <td style="font-weight:400;">
+              {{ inv.customer.CustomerName }}<br>
+              <span style="font-size:11px;color:var(--text-light);">{{ inv.customer.PhoneNumber }}</span>
+            </td>
+            <td>Table {{ inv.table.TableNumber }}</td>
+            <td>{{ inv.PaymentDate.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>
+              {% if inv.PaymentMethod == 'cash' %}
+                <span class="badge badge-green">Cash</span>
+              {% else %}
+                <span class="badge badge-amber">Card</span>
+              {% endif %}
+            </td>
+            <td>{{ inv.details|length }}</td>
+            <td style="font-weight:400;color:var(--accent);">{{ "{:,.0f}".format(inv.TotalAmount) }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;color:var(--text-light);padding:32px;">No invoices found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Invoice Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal" style="width:540px;">
+    <div class="modal-title">New Invoice</div>
+    <form method="POST" action="{{ url_for('invoices.add') }}">
+      <div class="grid-2" style="gap:12px;">
+        <div class="form-group">
+          <label>Customer</label>
+          <select name="customer_id" required>
+            <option value="">— Select —</option>
+            {% for c in customers %}
+            <option value="{{ c.CustomerID }}">{{ c.CustomerName }} — {{ c.PhoneNumber }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Table</label>
+          <select name="table_id" required>
+            <option value="">— Select —</option>
+            {% for t in tables %}
+            <option value="{{ t.TableID }}">Table {{ t.TableNumber }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select name="payment_method">
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Dishes Ordered</label>
+        <div id="dishListManual">
+          <div class="dish-row" style="display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:8px;">
+            <select name="dish_id[]">
+              {% for m in menu_items %}
+              <option value="{{ m.DishID }}">{{ m.DishName }} — {{ "{:,.0f}".format(m.Price) }} VND</option>
+              {% endfor %}
+            </select>
+            <input type="number" name="quantity[]" value="1" min="1" style="text-align:center;">
+            <span></span>
+          </div>
+        </div>
+        <button type="button" onclick="addDishManual()" class="btn btn-outline btn-sm" style="margin-top:4px;">+ Add dish</button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const menuItemsInv = [
+  {% for m in menu_items %}
+  { id: {{ m.DishID }}, name: "{{ m.DishName|e }}", price: {{ m.Price }} },
+  {% endfor %}
+];
+
+function addDishManual() {
+  const list = document.getElementById('dishListManual');
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:8px;';
+  const sel = document.createElement('select');
+  sel.name = 'dish_id[]';
+  menuItemsInv.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.name + ' — ' + m.price.toLocaleString('vi-VN') + ' VND';
+    sel.appendChild(o);
+  });
+  const qty = document.createElement('input');
+  qty.type = 'number'; qty.name = 'quantity[]';
+  qty.value = 1; qty.min = 1; qty.style.textAlign = 'center';
+  const rm = document.createElement('button');
+  rm.type = 'button'; rm.innerHTML = '✕';
+  rm.style.cssText = 'background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;';
+  rm.onclick = function(){ list.querySelectorAll('.dish-row').length > 1 && rm.closest('.dish-row').remove(); };
+  row.appendChild(sel); row.appendChild(qty); row.appendChild(rm);
+  list.appendChild(row);
+}
+</script>
+{% endblock %}
