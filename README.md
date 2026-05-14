@@ -75,24 +75,24 @@ Restaurant-Management-System/
 - `InvoiceDetails` — line items linking invoices to dishes
 
 **Advanced Database Objects:**
-- ✅ 7 Indexes — optimized queries on phone, name, date, customer
-- ✅ 3 Views — `v_daily_bookings`, `v_table_availability`, `v_top_selling_dishes`
-- ✅ 2 Stored Procedures — `sp_confirm_reservation`, `sp_generate_invoice`
-- ✅ 1 User Defined Function — `fn_calculate_discount`
-- ✅ 2 Triggers — `trg_reserve_table`, `trg_release_table_on_cancel`
+- 7 Indexes — optimized queries on phone, name, date, customer
+- 3 Views — `v_daily_bookings`, `v_table_availability`, `v_top_selling_dishes`
+- 2 Stored Procedures — `sp_confirm_reservation`, `sp_generate_invoice`
+- 1 User Defined Function — `fn_calculate_discount`
+- 2 Triggers — `trg_reserve_table`, `trg_release_table_on_cancel`
 
 ---
 
 ## Features
 
-- 🔐 **Authentication** — session-based staff login
-- 📊 **Dashboard** — real-time stats, today's reservations, top dishes, 7-day revenue chart
-- 👥 **Customer Management** — add, edit, search, view invoice & reservation history
-- 🪑 **Table Management** — 20 tables, toggle available/reserved, add new tables
-- 🍝 **Menu Management** — 15 dishes, 5 categories, image upload, filter by category/status
-- 📅 **Reservations** — create, cancel, auto table status update
-- 🧾 **Invoices** — create with dish selection, filter by method/date, auto table release
-- 📈 **Reports** — revenue charts, top 10 dishes, reservation breakdown (7/30/90 days)
+-  **Authentication** — session-based staff login
+-  **Dashboard** — real-time stats, today's reservations, top dishes, 7-day revenue chart
+-  **Customer Management** — add, edit, search, view invoice & reservation history
+-  **Table Management** — 20 tables, toggle available/reserved, add new tables
+-  **Menu Management** — 15 dishes, 5 categories, image upload, filter by category/status
+-  **Reservations** — create, cancel, auto table status update
+-  **Invoices** — create with dish selection, filter by method/date, auto table release
+-  **Reports** — revenue charts, top 10 dishes, reservation breakdown (7/30/90 days)
 
 ---
 
