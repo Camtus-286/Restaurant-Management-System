@@ -48,8 +48,11 @@
       <option value="cash" {{ 'selected' if selected_method=='cash' }}>Cash</option>
       <option value="card" {{ 'selected' if selected_method=='card' }}>Card</option>
     </select>
-    <input type="date" name="date_from" value="{{ date_from }}" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
-    <input type="date" name="date_to"   value="{{ date_to }}"   style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <input type="date" name="date_from" value="{{ date_from }}" 
+        placeholder="From" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <span style="color:var(--text-light);font-size:13px;">→</span>
+    <input type="date" name="date_to" value="{{ date_to }}"
+        placeholder="To" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
     <a href="{{ url_for('invoices.index') }}" class="btn btn-outline btn-sm">Reset</a>
   </form>

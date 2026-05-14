@@ -35,7 +35,7 @@ def index():
         query = query.order_by(Reservation.DateTime.asc())
     elif sort == 'date_desc':
         query = query.order_by(Reservation.DateTime.desc())
-    else:  # last_added
+    else:
         query = query.order_by(Reservation.ReservationID.desc())
 
     reservations     = query.all()
@@ -60,13 +60,39 @@ def index():
 @reservations_bp.route('/add', methods=['POST'])
 @login_required
 def add():
+    customer_id  = request.form.get('customer_id', '').strip()
+    new_name     = request.form.get('new_name', '').strip()
+    new_phone    = request.form.get('new_phone', '').strip()
+    new_address  = request.form.get('new_address', '').strip()
+
+    # Nếu chưa chọn khách có sẵn → tạo khách mới
+    if not customer_id:
+        if not new_name or not new_phone:
+            flash('Please select an existing customer or enter name and phone for a new one!', 'danger')
+            return redirect(url_for('reservations.index'))
+
+        # Kiểm tra phone trùng
+        existing = Customer.query.filter_by(PhoneNumber=new_phone).first()
+        if existing:
+            customer_id = existing.CustomerID
+        else:
+            new_customer = Customer(
+                CustomerName=new_name,
+                PhoneNumber=new_phone,
+                Address=new_address
+            )
+            db.session.add(new_customer)
+            db.session.flush()
+            customer_id = new_customer.CustomerID
+            flash(f'New customer "{new_name}" added to the system.', 'success')
+
     table = Table.query.get(request.form['table_id'])
     if not table or table.Status == 'reserved':
         flash('This table is not available!', 'danger')
         return redirect(url_for('reservations.index'))
 
     reservation = Reservation(
-        CustomerID = request.form['customer_id'],
+        CustomerID = customer_id,
         TableID    = request.form['table_id'],
         DateTime   = datetime.strptime(request.form['datetime'], '%Y-%m-%dT%H:%M'),
         GuestCount = int(request.form['guest_count']),

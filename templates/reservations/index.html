@@ -121,7 +121,7 @@
       <!-- Customer autocomplete -->
       <div class="form-group" style="position:relative;">
         <label>Customer</label>
-        <input type="hidden" name="customer_id" id="res_customer_id" required>
+        <input type="hidden" name="customer_id" id="res_customer_id">
         <input type="text" id="res_customer_input"
           placeholder="Type name or phone to search..."
           autocomplete="off"
@@ -131,18 +131,37 @@
           box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:999;max-height:200px;overflow-y:auto;">
         </div>
         <p style="font-size:11px;color:var(--text-light);margin-top:4px;">
-          Type at least 2 characters to search existing customers.
+          Type at least 2 characters to search. Or add a new customer below.
         </p>
+        <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;"
+          onclick="toggleNewCustomer()">+ New customer not in system</button>
       </div>
 
-      <!-- Date & Time first -->
+      <!-- New customer fields -->
+      <div id="new_customer_fields" style="display:none;margin-top:4px;padding:12px;background:#f5f2ec;border-radius:6px;margin-bottom:8px;">
+        <p style="font-size:12px;color:var(--accent);margin-bottom:10px;font-weight:500;">✦ New Customer Info</p>
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" name="new_name" id="new_name" placeholder="Enter full name">
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="text" name="new_phone" id="new_phone" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" name="new_address" placeholder="Enter address (optional)">
+        </div>
+      </div>
+
+      <!-- Date & Time -->
       <div class="form-group">
         <label>Date & Time</label>
         <input type="datetime-local" name="datetime" id="res_datetime" required
           onchange="loadAvailableTables(this.value)">
       </div>
 
-      <!-- Available Table (loads after datetime selected) -->
+      <!-- Available Table -->
       <div class="form-group">
         <label>Available Table</label>
         <select name="table_id" id="res_table_select" required>
@@ -258,6 +277,26 @@ function removeDish(btn) {
   const list = document.getElementById('dishList');
   if (list.querySelectorAll('.dish-row').length > 1) {
     btn.closest('.dish-row').remove();
+  }
+}
+
+// ── Toggle new customer fields ────────────────────────────
+function toggleNewCustomer() {
+  const fields = document.getElementById('new_customer_fields');
+  const hidden = document.getElementById('res_customer_id');
+  const input  = document.getElementById('res_customer_input');
+  if (fields.style.display === 'none') {
+    fields.style.display = 'block';
+    hidden.value       = '';
+    input.value        = '';
+    input.disabled     = true;
+    input.style.opacity = '0.4';
+  } else {
+    fields.style.display = 'none';
+    input.disabled      = false;
+    input.style.opacity = '1';
+    document.getElementById('new_name').value  = '';
+    document.getElementById('new_phone').value = '';
   }
 }
 
