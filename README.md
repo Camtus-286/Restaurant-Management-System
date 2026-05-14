@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Management System
+# Restaurant Management System
 
 > Project 05 – End Term Project | DATCOM Lab | National Economics University
 
@@ -6,7 +6,7 @@ A web-based restaurant management system built with **Flask** and **MySQL**, des
 
 ---
 
-## 👩‍💻 Author
+## Author
 
 | Field | Info |
 |-------|------|
@@ -17,7 +17,7 @@ A web-based restaurant management system built with **Flask** and **MySQL**, des
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Technology | Purpose |
 |-----------|---------|
@@ -31,7 +31,7 @@ A web-based restaurant management system built with **Flask** and **MySQL**, des
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Restaurant-Management-System/
@@ -64,7 +64,7 @@ Restaurant-Management-System/
 
 ---
 
-## 🗄️ Database Schema
+## Database Schema
 
 **6 Tables:**
 - `Customers` — customer identity and contact details
@@ -83,7 +83,7 @@ Restaurant-Management-System/
 
 ---
 
-## ✨ Features
+## Features
 
 - 🔐 **Authentication** — session-based staff login
 - 📊 **Dashboard** — real-time stats, today's reservations, top dishes, 7-day revenue chart
@@ -96,7 +96,7 @@ Restaurant-Management-System/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 ```bash
@@ -141,7 +141,7 @@ Visit `http://127.0.0.1:5000` and login with:
 
 ---
 
-## 📊 Sample Data
+## Sample Data
 
 | Table | Rows | Description |
 |-------|------|-------------|
@@ -154,6 +154,6 @@ Visit `http://127.0.0.1:5000` and login with:
 
 ---
 
-## 📝 License
+## License
 
 This project is for academic purposes only — DATCOM Lab, NEU College of Technology.
