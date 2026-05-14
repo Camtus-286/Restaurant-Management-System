@@ -110,6 +110,7 @@ def add():
     table = Table.query.get(int(request.form['table_id']))
     if table:
         table.Status = 'available'
+
     db.session.commit()
     flash('Invoice created successfully!', 'success')
     return redirect(url_for('invoices.index'))

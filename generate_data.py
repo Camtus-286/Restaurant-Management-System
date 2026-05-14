@@ -56,21 +56,21 @@ print(f"✅ Inserted {len(tables)} tables")
 
 # ── 3. MENUITEMS (15 rows) ────────────────────────────────
 menu_items = [
-    ('Spaghetti Carbonara',  185000, 'Entree',    'spaghetti_carbonara.jpg'),
-    ('Fettuccine Alfredo',   175000, 'Entree',    'fettuccine_alfredo.jpg'),
-    ('Penne Arrabiata',      165000, 'Entree',    'penne_arrabiata.jpg'),
-    ('Lasagne Bolognese',    195000, 'Entree',    'lasagne_bolognese.jpg'),
-    ('Mushroom Risotto',     220000, 'Entree',    'mushroom_risotto.jpg'),
-    ('Beef Steak',           350000, 'Main',      'beef_steak.jpg'),
-    ('Herb Roasted Chicken', 245000, 'Main',      'herb_roasted_chicken.jpg'),
-    ('Grilled Salmon',       290000, 'Main',      'grilled_salmon.jpg'),
-    ('Pizza Margherita',     175000, 'Pizza',     'pizza_margherita.jpg'),
-    ('Cream of Mushroom Soup', 75000,'Starter',   'cream_of_mushroom_soup.jpg'),
-    ('Caesar Salad',          95000, 'Starter',   'caesar_salad.jpg'),
-    ('Garlic Bread',          45000, 'Starter',   'garlic_bread.jpg'),
-    ('Tiramisu',              85000, 'Dessert',   'tiramisu.jpg'),
-    ('Panna Cotta',           75000, 'Dessert',   'panna_cotta.jpg'),
-    ('Cappuccino',            65000, 'Beverage',  'cappuccino.jpg'),
+    ('Spaghetti Carbonara',    185000, 'Entree',   'spaghetti_carbonara.jpg'),
+    ('Fettuccine Alfredo',     175000, 'Entree',   'fettuccine_alfredo.jpg'),
+    ('Penne Arrabiata',        165000, 'Entree',   'penne_arrabiata.jpg'),
+    ('Lasagne Bolognese',      195000, 'Entree',   'lasagne_bolognese.jpg'),
+    ('Mushroom Risotto',       220000, 'Entree',   'mushroom_risotto.jpg'),
+    ('Beef Steak',             350000, 'Main',     'beef_steak.jpg'),
+    ('Herb Roasted Chicken',   245000, 'Main',     'herb_roasted_chicken.jpg'),
+    ('Grilled Salmon',         290000, 'Main',     'grilled_salmon.jpg'),
+    ('Pizza Margherita',       175000, 'Pizza',    'pizza_margherita.jpg'),
+    ('Cream of Mushroom Soup',  75000, 'Starter',  'cream_of_mushroom_soup.jpg'),
+    ('Caesar Salad',            95000, 'Starter',  'caesar_salad.jpg'),
+    ('Garlic Bread',            45000, 'Starter',  'garlic_bread.jpg'),
+    ('Tiramisu',                85000, 'Dessert',  'tiramisu.jpg'),
+    ('Panna Cotta',             75000, 'Dessert',  'panna_cotta.jpg'),
+    ('Cappuccino',              65000, 'Beverage', 'cappuccino.jpg'),
 ]
 cursor.executemany(
     "INSERT INTO MenuItems (DishName, Price, Category, Available, ImageFilename) VALUES (%s,%s,%s,%s,%s)",
@@ -80,13 +80,12 @@ conn.commit()
 print(f"✅ Inserted {len(menu_items)} menu items")
 
 # ── 4. RESERVATIONS (100 rows) ────────────────────────────
-# date range: last 60 days → next 30 days so today always has data
 now = datetime.now()
 reservations = []
 for _ in range(100):
     cid    = random.randint(1, 100)
     tid    = random.randint(1, 20)
-    offset = random.randint(-60, 30)          # days relative to today
+    offset = random.randint(-60, 30)
     dt     = now + timedelta(days=offset,
                              hours=random.randint(-now.hour, 23-now.hour),
                              minutes=random.choice([0, 15, 30, 45]))
@@ -101,14 +100,19 @@ cursor.executemany(
 conn.commit()
 print(f"✅ Inserted {len(reservations)} reservations")
 
-# ── 5. INVOICES + INVOICE DETAILS (100 rows) ─────────────
-# Spread invoices over last 30 days so revenue charts look good
-for _ in range(200):
+# ── 5. INVOICES + INVOICE DETAILS (300 rows) ─────────────
+# Date range: Jan 1, 2026 → May 13, 2026
+start_date = datetime(2026, 1, 1)
+end_date   = datetime(2026, 5, 13)
+date_range = (end_date - start_date).days
+
+for _ in range(300):
     cid    = random.randint(1, 100)
     tid    = random.randint(1, 20)
-    offset = random.randint(-29, 0)           # last 30 days only
-    pdate  = now + timedelta(days=offset,
-                             hours=random.randint(10, 22))
+    pdate  = start_date + timedelta(
+                days=random.randint(0, date_range),
+                hours=random.randint(10, 22)
+             )
     method = random.choice(['cash', 'card'])
 
     cursor.execute(
@@ -135,7 +139,7 @@ for _ in range(200):
     cursor.execute("UPDATE Invoices SET TotalAmount=%s WHERE InvoiceID=%s", (total, invoice_id))
 
 conn.commit()
-print("✅ Inserted 100 invoices + details")
+print("✅ Inserted 300 invoices + details")
 
 cursor.close()
 conn.close()

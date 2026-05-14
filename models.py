@@ -48,7 +48,7 @@ class Invoice(db.Model):
     PaymentDate    = db.Column(db.DateTime, server_default=db.func.now())
     PaymentMethod  = db.Column(db.Enum('cash', 'card'), default='cash')
     details        = db.relationship('InvoiceDetail', backref='invoice', lazy=True)
-
+    
 class InvoiceDetail(db.Model):
     __tablename__ = 'InvoiceDetails'
     DetailID      = db.Column(db.Integer, primary_key=True)
@@ -56,3 +56,4 @@ class InvoiceDetail(db.Model):
     DishID        = db.Column(db.Integer, db.ForeignKey('MenuItems.DishID'), nullable=False)
     Quantity      = db.Column(db.Integer, nullable=False)
     UnitPrice     = db.Column(db.Numeric(10, 2), nullable=False)
+   

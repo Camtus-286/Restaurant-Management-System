@@ -34,14 +34,21 @@
   </div>
 
   <!-- Filter -->
-  <form method="GET" style="display:flex;gap:8px;align-items:center;margin-bottom:20px;">
+  <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
     <input type="text" name="q" value="{{ q }}"
       placeholder="Search by customer name..."
-      style="max-width:280px;border-radius:20px;padding:8px 16px;font-size:13px;">
+      style="max-width:220px;border-radius:20px;padding:8px 16px;font-size:13px;">
     <select name="status" style="width:auto;border-radius:20px;padding:8px 14px;font-size:13px;">
       <option value="">All Status</option>
       <option value="confirmed" {{ 'selected' if selected_status == 'confirmed' }}>Confirmed</option>
       <option value="cancelled" {{ 'selected' if selected_status == 'cancelled' }}>Cancelled</option>
+    </select>
+    <input type="date" name="date_filter" value="{{ date_filter }}"
+      style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <select name="sort" style="width:auto;border-radius:20px;padding:8px 14px;font-size:13px;">
+      <option value="last_added" {{ 'selected' if sort == 'last_added' }}>Last Added</option>
+      <option value="date_asc"   {{ 'selected' if sort == 'date_asc' }}>Date ↑</option>
+      <option value="date_desc"  {{ 'selected' if sort == 'date_desc' }}>Date ↓</option>
     </select>
     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
     <a href="{{ url_for('reservations.index') }}" class="btn btn-outline btn-sm">Reset</a>
@@ -49,7 +56,7 @@
 
   <!-- Table -->
   <div class="card" style="padding:0;overflow:hidden;">
-    <div class="table-wrap" style="max-height:calc(100vh - 320px);overflow-y:auto;">
+    <div class="table-wrap" style="max-height:calc(100vh - 340px);overflow-y:auto;">
       <table>
         <thead>
           <tr>
@@ -110,32 +117,47 @@
   <div class="modal">
     <div class="modal-title">New Reservation</div>
     <form method="POST" action="{{ url_for('reservations.add') }}">
-      <div class="form-group">
+
+      <!-- Customer autocomplete -->
+      <div class="form-group" style="position:relative;">
         <label>Customer</label>
-        <select name="customer_id" required>
-          <option value="">— Select customer —</option>
-          {% for c in customers %}
-          <option value="{{ c.CustomerID }}">{{ c.CustomerName }} — {{ c.PhoneNumber }}</option>
-          {% endfor %}
-        </select>
+        <input type="hidden" name="customer_id" id="res_customer_id" required>
+        <input type="text" id="res_customer_input"
+          placeholder="Type name or phone to search..."
+          autocomplete="off"
+          oninput="searchCustomer(this.value)">
+        <div id="res_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;
+          background:#fff;border:1px solid var(--border);border-radius:6px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:999;max-height:200px;overflow-y:auto;">
+        </div>
+        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">
+          Type at least 2 characters to search existing customers.
+        </p>
       </div>
-      <div class="form-group">
-        <label>Available Table</label>
-        <select name="table_id" required>
-          <option value="">— Select table —</option>
-          {% for t in available_tables %}
-          <option value="{{ t.TableID }}">Table {{ t.TableNumber }}</option>
-          {% endfor %}
-        </select>
-      </div>
+
+      <!-- Date & Time first -->
       <div class="form-group">
         <label>Date & Time</label>
-        <input type="datetime-local" name="datetime" required>
+        <input type="datetime-local" name="datetime" id="res_datetime" required
+          onchange="loadAvailableTables(this.value)">
       </div>
+
+      <!-- Available Table (loads after datetime selected) -->
+      <div class="form-group">
+        <label>Available Table</label>
+        <select name="table_id" id="res_table_select" required>
+          <option value="">— Select table —</option>
+        </select>
+        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">
+          Only tables with no bookings within ±2 hours are shown.
+        </p>
+      </div>
+
       <div class="form-group">
         <label>Number of Guests</label>
         <input type="number" name="guest_count" required min="1" max="20" placeholder="e.g. 4">
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Confirm Reservation</button>
@@ -144,7 +166,7 @@
   </div>
 </div>
 
-<!-- Quick Invoice Modal (from reservation) -->
+<!-- Quick Invoice Modal -->
 <div class="modal-overlay" id="invoiceModal">
   <div class="modal" style="width:540px;">
     <div class="modal-title">Create Invoice</div>
@@ -153,9 +175,8 @@
     </p>
     <form method="POST" action="{{ url_for('invoices.add') }}" id="invoiceForm">
       <input type="hidden" name="customer_id" id="inv_customer_id">
-      <input type="hidden" name="table_id" id="inv_table_id">
+      <input type="hidden" name="table_id"    id="inv_table_id">
       <input type="hidden" name="reservation_id" id="inv_reservation_id">
-
       <div class="form-group">
         <label>Payment Method</label>
         <select name="payment_method">
@@ -163,7 +184,6 @@
           <option value="card">Card</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>Dishes Ordered</label>
         <div id="dishList">
@@ -174,12 +194,12 @@
               {% endfor %}
             </select>
             <input type="number" name="quantity[]" value="1" min="1" style="text-align:center;">
-            <button type="button" onclick="removeDish(this)" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>
+            <button type="button" onclick="removeDish(this)"
+              style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>
           </div>
         </div>
         <button type="button" onclick="addDish()" class="btn btn-outline btn-sm" style="margin-top:4px;">+ Add dish</button>
       </div>
-
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('invoiceModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Create Invoice</button>
@@ -197,9 +217,10 @@ const menuItems = [
   {% endfor %}
 ];
 
+// ── Invoice modal ─────────────────────────────────────────
 function openInvoiceModal(resId, custId, custName, tableId, tableNum) {
-  document.getElementById('inv_customer_id').value   = custId;
-  document.getElementById('inv_table_id').value      = tableId;
+  document.getElementById('inv_customer_id').value    = custId;
+  document.getElementById('inv_table_id').value       = tableId;
   document.getElementById('inv_reservation_id').value = resId;
   document.getElementById('inv_customer_name').textContent = custName;
   document.getElementById('inv_table_num').textContent     = 'Table ' + tableNum;
@@ -220,11 +241,9 @@ function buildDishRow() {
   });
   const qty = document.createElement('input');
   qty.type = 'number'; qty.name = 'quantity[]';
-  qty.value = 1; qty.min = 1;
-  qty.style.textAlign = 'center';
+  qty.value = 1; qty.min = 1; qty.style.textAlign = 'center';
   const rm = document.createElement('button');
-  rm.type = 'button';
-  rm.innerHTML = '✕';
+  rm.type = 'button'; rm.innerHTML = '✕';
   rm.style.cssText = 'background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;';
   rm.onclick = function(){ removeDish(this); };
   row.appendChild(sel); row.appendChild(qty); row.appendChild(rm);
@@ -241,5 +260,67 @@ function removeDish(btn) {
     btn.closest('.dish-row').remove();
   }
 }
+
+// ── Customer autocomplete ─────────────────────────────────
+function searchCustomer(q) {
+  const dropdown = document.getElementById('res_dropdown');
+  const hidden   = document.getElementById('res_customer_id');
+  hidden.value   = '';
+  if (q.length < 2) { dropdown.style.display = 'none'; return; }
+
+  fetch(`/customers/search?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(data => {
+      dropdown.innerHTML = '';
+      if (data.length === 0) {
+        dropdown.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:var(--text-light);">No customers found</div>';
+      } else {
+        data.forEach(c => {
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);';
+          div.innerHTML = `<strong>${c.name}</strong> <span style="color:var(--text-light);font-size:11px;">${c.phone}</span>`;
+          div.onmouseenter = () => div.style.background = '#f5f2ec';
+          div.onmouseleave = () => div.style.background = '';
+          div.onclick = () => {
+            document.getElementById('res_customer_input').value = c.name + ' — ' + c.phone;
+            hidden.value = c.id;
+            dropdown.style.display = 'none';
+          };
+          dropdown.appendChild(div);
+        });
+      }
+      dropdown.style.display = 'block';
+    });
+}
+
+// ── Load available tables by datetime ────────────────────
+function loadAvailableTables(dt) {
+  const sel = document.getElementById('res_table_select');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  if (!dt) return;
+
+  fetch(`/tables/available?datetime=${encodeURIComponent(dt)}`)
+    .then(r => r.json())
+    .then(data => {
+      sel.innerHTML = '<option value="">— Select table —</option>';
+      if (data.length === 0) {
+        sel.innerHTML = '<option value="">No tables available at this time</option>';
+      } else {
+        data.forEach(t => {
+          const o = document.createElement('option');
+          o.value = t.id;
+          o.textContent = 'Table ' + t.number;
+          sel.appendChild(o);
+        });
+      }
+    });
+}
+
+// ── Close dropdowns on outside click ─────────────────────
+document.addEventListener('click', e => {
+  document.querySelectorAll('[id$="_dropdown"]').forEach(d => {
+    if (!d.contains(e.target)) d.style.display = 'none';
+  });
+});
 </script>
 {% endblock %}

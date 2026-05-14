@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from models import db, Reservation, Customer, Table
 from datetime import datetime
+from sqlalchemy import func
 
 reservations_bp = Blueprint('reservations', __name__)
 
@@ -16,16 +17,28 @@ def login_required(f):
 @reservations_bp.route('/')
 @login_required
 def index():
-    status = request.args.get('status', '')
-    q      = request.args.get('q', '').strip()
+    status      = request.args.get('status', '')
+    q           = request.args.get('q', '').strip()
+    sort        = request.args.get('sort', 'last_added')
+    date_filter = request.args.get('date_filter', '')
 
     query = Reservation.query.join(Customer)
+
     if status in ('confirmed', 'cancelled'):
         query = query.filter(Reservation.Status == status)
     if q:
         query = query.filter(Customer.CustomerName.ilike(f'%{q}%'))
+    if date_filter:
+        query = query.filter(func.date(Reservation.DateTime) == date_filter)
 
-    reservations     = query.order_by(Reservation.DateTime.desc()).all()
+    if sort == 'date_asc':
+        query = query.order_by(Reservation.DateTime.asc())
+    elif sort == 'date_desc':
+        query = query.order_by(Reservation.DateTime.desc())
+    else:  # last_added
+        query = query.order_by(Reservation.ReservationID.desc())
+
+    reservations     = query.all()
     customers        = Customer.query.order_by(Customer.CustomerName).all()
     available_tables = Table.query.filter_by(Status='available')\
                            .order_by(Table.TableNumber).all()
@@ -39,7 +52,9 @@ def index():
         confirmed_count=confirmed_count,
         cancelled_count=cancelled_count,
         selected_status=status,
-        q=q
+        q=q,
+        sort=sort,
+        date_filter=date_filter
     )
 
 @reservations_bp.route('/add', methods=['POST'])

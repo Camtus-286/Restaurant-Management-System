@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from models import db, Customer, Table, Reservation, Invoice, InvoiceDetail, MenuItem
 from config import Config
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
+
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+
 STAFF_USERNAME = 'admin'
 STAFF_PASSWORD = 'Staff@1234'
 
@@ -24,7 +26,7 @@ app.register_blueprint(reservations_bp, url_prefix='/reservations')
 app.register_blueprint(invoices_bp,     url_prefix='/invoices')
 app.register_blueprint(reports_bp,      url_prefix='/reports')
 
-# ── Auth helpers ──────────────────────────────────────────
+# ── Auth helper ───────────────────────────────────────────
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -60,12 +62,60 @@ def logout():
     session.clear()
     return redirect(url_for('staff_login'))
 
+# ── Customer Search API (autocomplete) ────────────────────
+@app.route('/customers/search')
+@login_required
+def customer_search():
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return jsonify([])
+    results = Customer.query.filter(
+        db.or_(
+            Customer.CustomerName.ilike(f'%{q}%'),
+            Customer.PhoneNumber.ilike(f'%{q}%')
+        )
+    ).limit(8).all()
+    return jsonify([{
+        'id':      c.CustomerID,
+        'name':    c.CustomerName,
+        'phone':   c.PhoneNumber,
+        'address': c.Address or ''
+    } for c in results])
+@app.route('/tables/available')
+@login_required
+def tables_available():
+    dt_str = request.args.get('datetime', '')
+    if not dt_str:
+        tables = Table.query.filter_by(Status='available').order_by(Table.TableNumber).all()
+        return jsonify([{'id': t.TableID, 'number': t.TableNumber} for t in tables])
+    
+    try:
+        dt = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M')
+    except:
+        return jsonify([])
+
+    # Tìm bàn không có reservation confirmed trong vòng ±2h
+    from sqlalchemy import and_, or_, not_, exists
+    busy_tables = db.session.query(Reservation.TableID).filter(
+        Reservation.Status == 'confirmed',
+        Reservation.DateTime.between(
+            dt - timedelta(hours=2),
+            dt + timedelta(hours=2)
+        )
+    ).subquery()
+
+    free_tables = Table.query.filter(
+        Table.Status == 'available',
+        ~Table.TableID.in_(busy_tables)
+    ).order_by(Table.TableNumber).all()
+
+    return jsonify([{'id': t.TableID, 'number': t.TableNumber} for t in free_tables])
+# ── Dashboard ─────────────────────────────────────────────
 @app.route('/dashboard')
 @login_required
 def dashboard():
     today = date.today()
 
-    # ── Summary cards ──────────────────────────────────────
     total_customers    = Customer.query.count()
     available_tables   = Table.query.filter_by(Status='available').count()
     today_reservations = Reservation.query.filter(
@@ -76,7 +126,6 @@ def dashboard():
         func.coalesce(func.sum(Invoice.TotalAmount), 0)
     ).filter(func.date(Invoice.PaymentDate) == today).scalar() or 0
 
-    # ── Today's reservations table ─────────────────────────
     recent_reservations = (
         Reservation.query
         .filter(func.date(Reservation.DateTime) == today)
@@ -84,7 +133,6 @@ def dashboard():
         .limit(8).all()
     )
 
-    # ── Top selling dishes ─────────────────────────────────
     top_dishes = (
         db.session.query(
             MenuItem.DishName,
@@ -97,7 +145,6 @@ def dashboard():
         .limit(5).all()
     )
 
-    # ── 7-day revenue chart ────────────────────────────────
     chart_labels, chart_data = [], []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)

@@ -49,7 +49,7 @@
       <option value="card" {{ 'selected' if selected_method=='card' }}>Card</option>
     </select>
     <input type="date" name="date_from" value="{{ date_from }}" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
-    <input type="date" name="date_to" value="{{ date_to }}" style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
+    <input type="date" name="date_to"   value="{{ date_to }}"   style="width:auto;border-radius:20px;padding:8px 12px;font-size:13px;">
     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
     <a href="{{ url_for('invoices.index') }}" class="btn btn-outline btn-sm">Reset</a>
   </form>
@@ -105,26 +105,34 @@
   <div class="modal" style="width:540px;">
     <div class="modal-title">New Invoice</div>
     <form method="POST" action="{{ url_for('invoices.add') }}">
-      <div class="grid-2" style="gap:12px;">
-        <div class="form-group">
-          <label>Customer</label>
-          <select name="customer_id" required>
-            <option value="">— Select —</option>
-            {% for c in customers %}
-            <option value="{{ c.CustomerID }}">{{ c.CustomerName }} — {{ c.PhoneNumber }}</option>
-            {% endfor %}
-          </select>
+
+      <!-- Customer autocomplete -->
+      <div class="form-group" style="position:relative;">
+        <label>Customer</label>
+        <input type="hidden" name="customer_id" id="inv_cust_id" required>
+        <input type="text" id="inv_cust_input"
+          placeholder="Type name or phone to search..."
+          autocomplete="off"
+          oninput="searchInvCustomer(this.value)">
+        <div id="inv_cust_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;
+          background:#fff;border:1px solid var(--border);border-radius:6px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:999;max-height:200px;overflow-y:auto;">
         </div>
-        <div class="form-group">
-          <label>Table</label>
-          <select name="table_id" required>
-            <option value="">— Select —</option>
-            {% for t in tables %}
-            <option value="{{ t.TableID }}">Table {{ t.TableNumber }}</option>
-            {% endfor %}
-          </select>
-        </div>
+        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">
+          Type at least 2 characters to search existing customers.
+        </p>
       </div>
+
+      <div class="form-group">
+        <label>Table</label>
+        <select name="table_id" required>
+          <option value="">— Select —</option>
+          {% for t in tables %}
+          <option value="{{ t.TableID }}">Table {{ t.TableNumber }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
       <div class="form-group">
         <label>Payment Method</label>
         <select name="payment_method">
@@ -132,6 +140,7 @@
           <option value="card">Card</option>
         </select>
       </div>
+
       <div class="form-group">
         <label>Dishes Ordered</label>
         <div id="dishListManual">
@@ -147,6 +156,7 @@
         </div>
         <button type="button" onclick="addDishManual()" class="btn btn-outline btn-sm" style="margin-top:4px;">+ Add dish</button>
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('addModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Create Invoice</button>
@@ -166,7 +176,7 @@ const menuItemsInv = [
 
 function addDishManual() {
   const list = document.getElementById('dishListManual');
-  const row = document.createElement('div');
+  const row  = document.createElement('div');
   row.className = 'dish-row';
   row.style.cssText = 'display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:8px;';
   const sel = document.createElement('select');
@@ -187,5 +197,42 @@ function addDishManual() {
   row.appendChild(sel); row.appendChild(qty); row.appendChild(rm);
   list.appendChild(row);
 }
+
+function searchInvCustomer(q) {
+  const dropdown = document.getElementById('inv_cust_dropdown');
+  const hidden   = document.getElementById('inv_cust_id');
+  hidden.value   = '';
+  if (q.length < 2) { dropdown.style.display = 'none'; return; }
+
+  fetch(`/customers/search?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(data => {
+      dropdown.innerHTML = '';
+      if (data.length === 0) {
+        dropdown.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:var(--text-light);">No customers found</div>';
+      } else {
+        data.forEach(c => {
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);';
+          div.innerHTML = `<strong>${c.name}</strong> <span style="color:var(--text-light);font-size:11px;">${c.phone}</span>`;
+          div.onmouseenter = () => div.style.background = '#f5f2ec';
+          div.onmouseleave = () => div.style.background = '';
+          div.onclick = () => {
+            document.getElementById('inv_cust_input').value = c.name + ' — ' + c.phone;
+            hidden.value = c.id;
+            dropdown.style.display = 'none';
+          };
+          dropdown.appendChild(div);
+        });
+      }
+      dropdown.style.display = 'block';
+    });
+}
+
+document.addEventListener('click', e => {
+  document.querySelectorAll('[id$="_dropdown"]').forEach(d => {
+    if (!d.contains(e.target)) d.style.display = 'none';
+  });
+});
 </script>
 {% endblock %}
