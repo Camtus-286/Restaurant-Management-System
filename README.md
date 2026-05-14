@@ -93,7 +93,9 @@ Restaurant-Management-System/
 -  **Reservations** — create, cancel, auto table status update
 -  **Invoices** — create with dish selection, filter by method/date, auto table release
 -  **Reports** — revenue charts, top 10 dishes, reservation breakdown (7/30/90 days)
-
+-  **Smart Search** — autocomplete customer search in reservation and invoice forms
+-  **Smart Table Availability** — shows only tables free within ±2 hours of selected time
+-  **Advanced Filtering** — filter reservations by date, sort by last added or date
 ---
 
 ## Getting Started
