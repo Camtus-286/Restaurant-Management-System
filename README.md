@@ -96,6 +96,10 @@ Restaurant-Management-System/
 -  **Smart Search** — autocomplete customer search in reservation and invoice forms
 -  **Smart Table Availability** — shows only tables free within ±2 hours of selected time
 -  **Advanced Filtering** — filter reservations by date, sort by last added or date
+-  **Customer Autocomplete** — smart search suggests existing customers while typing in reservation and invoice forms
+-  **Smart Table Availability** — automatically filters available tables based on selected date/time (±2 hour conflict check)
+-  **Advanced Reservation Filter** — filter by date, sort by last added or date ascending/descending
+-  **Auto-create Customer** — new customers are automatically added to the system when booking a reservation
 ---
 
 ## Getting Started
