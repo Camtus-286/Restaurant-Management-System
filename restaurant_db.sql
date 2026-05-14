@@ -89,12 +89,11 @@ SELECT
     t.TableID,
     t.TableNumber,
     t.Status,
-    COUNT(r.ReservationID) AS UpcomingReservations
+    COUNT(r.ReservationID) AS ConfirmedReservations
 FROM Tables t
 LEFT JOIN Reservations r
     ON r.TableID = t.TableID
     AND r.Status = 'confirmed'
-    AND r.DateTime >= NOW()
 GROUP BY t.TableID, t.TableNumber, t.Status;
 
 CREATE OR REPLACE VIEW v_top_selling_dishes AS
@@ -138,19 +137,16 @@ DELIMITER ;
 -- ── 6. USER DEFINED FUNCTIONS ────────────────────────────
 
 DELIMITER $$
-
-CREATE FUNCTION fn_calculate_discount(total_amount DECIMAL(10,2))
+CREATE FUNCTION fn_get_customer_total(p_customer_id INT)
 RETURNS DECIMAL(10,2)
 DETERMINISTIC
 BEGIN
-    DECLARE discount DECIMAL(10,2);
-    IF     total_amount >= 1000000 THEN SET discount = total_amount * 0.10;
-    ELSEIF total_amount >=  500000 THEN SET discount = total_amount * 0.05;
-    ELSE                                SET discount = 0;
-    END IF;
-    RETURN discount;
+    DECLARE total DECIMAL(10,2);
+    SELECT COALESCE(SUM(TotalAmount), 0) INTO total
+    FROM Invoices
+    WHERE CustomerID = p_customer_id;
+    RETURN total;
 END$$
-
 DELIMITER ;
 
 -- ── 7. TRIGGERS ──────────────────────────────────────────
@@ -187,3 +183,8 @@ SHOW FULL TABLES WHERE Table_type = 'VIEW';
 SHOW PROCEDURE STATUS WHERE Db = 'restaurant_db';
 SHOW FUNCTION  STATUS WHERE Db = 'restaurant_db';
 SHOW TRIGGERS  FROM restaurant_db;
+SHOW TABLES;
+SHOW FULL TABLES WHERE Table_type = 'VIEW';
+SHOW PROCEDURE STATUS WHERE Db = 'restaurant_db';
+SHOW FUNCTION STATUS WHERE Db = 'restaurant_db';
+SHOW TRIGGERS FROM restaurant_db;
