@@ -10,9 +10,9 @@ A web-based restaurant management system built with **Flask** and **MySQL**, des
 
 | Field | Info |
 |-------|------|
-| Student | Le Cam Tu |
+| Student | Lê Cẩm Tú |
 | Student ID | 11245945 |
-| Class | DSEB 66B |
+| Class | DSEB 66 |
 | GitHub | [@Camtus-286](https://github.com/Camtus-286) |
 
 ---
@@ -39,6 +39,7 @@ Restaurant-Management-System/
 ├── config.py               # Database configuration
 ├── models.py               # SQLAlchemy models
 ├── generate_data.py        # Sample data generation script
+├── restaurant_db.sql       # Full SQL schema (tables, indexes, views, procedures, triggers)
 ├── requirements.txt        # Python dependencies
 ├── routes/
 │   ├── customers.py        # Customer CRUD + detail view
@@ -75,31 +76,27 @@ Restaurant-Management-System/
 - `InvoiceDetails` — line items linking invoices to dishes
 
 **Advanced Database Objects:**
-- 7 Indexes — optimized queries on phone, name, date, customer
+- 7 Indexes — optimised queries on phone number, customer name, reservation date, invoice date, and menu category
 - 3 Views — `v_daily_bookings`, `v_table_availability`, `v_top_selling_dishes`
 - 2 Stored Procedures — `sp_confirm_reservation`, `sp_generate_invoice`
-- 1 User Defined Function — `fn_calculate_discount`
+- 1 User-Defined Function — `fn_get_customer_total`
 - 2 Triggers — `trg_reserve_table`, `trg_release_table_on_cancel`
 
 ---
 
 ## Features
 
--  **Authentication** — session-based staff login
--  **Dashboard** — real-time stats, today's reservations, top dishes, 7-day revenue chart
--  **Customer Management** — add, edit, search, view invoice & reservation history
--  **Table Management** — 20 tables, toggle available/reserved, add new tables
--  **Menu Management** — 15 dishes, 5 categories, image upload, filter by category/status
--  **Reservations** — create, cancel, auto table status update
--  **Invoices** — create with dish selection, filter by method/date, auto table release
--  **Reports** — revenue charts, top 10 dishes, reservation breakdown (7/30/90 days)
--  **Smart Search** — autocomplete customer search in reservation and invoice forms
--  **Smart Table Availability** — shows only tables free within ±2 hours of selected time
--  **Advanced Filtering** — filter reservations by date, sort by last added or date
--  **Customer Autocomplete** — smart search suggests existing customers while typing in reservation and invoice forms
--  **Smart Table Availability** — automatically filters available tables based on selected date/time (±2 hour conflict check)
--  **Advanced Reservation Filter** — filter by date, sort by last added or date ascending/descending
--  **Auto-create Customer** — new customers are automatically added to the system when booking a reservation
+- **Authentication** — session-based staff login with `login_required` decorator
+- **Dashboard** — real-time stats (customers, available tables, today's reservations, today's revenue), top 5 best-selling dishes, and 7-day revenue trend chart
+- **Customer Management** — add, edit, search by name or phone number, view invoice and reservation history per customer
+- **Table Management** — 20 tables displayed as a grid, toggle available/reserved status, trigger-based auto-update on reservation changes
+- **Menu Management** — 15 dishes across 5 categories, image upload support, filter by category and availability status
+- **Reservations** — create with smart table availability check (±2 hour conflict detection), cancel with automatic table release, filter by date and sort controls
+- **Invoices** — create with dish selection and auto-computed total, filter by payment method and date range, quick invoice generation directly from a reservation
+- **Reports** — daily revenue line chart, reservation status doughnut chart, top 10 dishes by revenue, configurable for 7/30/90-day windows
+- **Smart Customer Autocomplete** — suggests existing customers while typing; automatically registers new customers when no match is found
+- **Auto Table Release** — table status returns to available automatically when a reservation is cancelled or an invoice is created
+
 ---
 
 ## Getting Started
@@ -117,7 +114,7 @@ pip install -r requirements.txt
 
 ### 3. Setup MySQL database
 - Open MySQL Workbench
-- Run `restaurant_db_complete.sql` to create all tables, indexes, views, procedures, and triggers
+- Run `restaurant_db.sql` to create all tables, indexes, views, stored procedures, user-defined functions, and triggers
 
 ### 4. Configure database connection
 Edit `config.py` with your MySQL credentials:
@@ -141,7 +138,7 @@ python3 generate_data.py
 python3 app.py
 ```
 
-Visit `http://127.0.0.1:5000` and login with:
+Visit `http://127.0.0.1:5000` and log in with:
 - **Username:** `admin`
 - **Password:** `Staff@1234`
 
@@ -151,12 +148,12 @@ Visit `http://127.0.0.1:5000` and login with:
 
 | Table | Rows | Description |
 |-------|------|-------------|
-| Customers | 100 | English names, Vietnamese phone numbers |
-| Tables | 20 | Table numbers 1-20 |
-| MenuItems | 15 | Italian/Western dishes, 5 categories |
-| Reservations | 100 | Last 60 days to next 30 days |
-| Invoices | 300 | Last 30 days, cash/card payment |
-| InvoiceDetails | ~900 | 1-5 dishes per invoice |
+| Customers | 100 | English names, Vietnamese-format phone numbers, addresses with street and district |
+| Tables | 20 | Table numbers 1–20, 75% available / 25% reserved |
+| MenuItems | 15 | Italian/Western dishes across 5 categories (Starter, Entree, Main, Dessert, Beverage) |
+| Reservations | 100 | Spanning 60 days back to 30 days forward; 70% confirmed / 30% cancelled |
+| Invoices | 300 | Spanning January 1 to May 13, 2026; 50% cash / 50% card |
+| InvoiceDetails | ~900 | 1–5 dishes per invoice, auto-generated |
 
 ---
 
